@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStore | Premium Standalone Storefront</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ==========================================================================
+           1. DESIGN SYSTEM & TOKENS (Vanilla CSS Style Engine)
+           ========================================================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #060608;
+            --card-bg: rgba(18, 18, 24, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(59, 130, 246, 0.3);
+            
+            --primary-color: #3b82f6; /* Electric Blue */
+            --accent-color: #00f0ff; /* Neon Cyan */
+            --gold-color: #d4af37; /* Luxe Gold */
+            
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            
+            --border-radius: 16px;
+            --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 240, 255, 0.1);
+            
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.04) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Smooth View Transitions */
+        .spa-view {
+            display: none;
+            animation: viewFadeIn 0.5s ease forwards;
+        }
+
+        .spa-view.active-view {
+            display: block;
+        }
+
+        @keyframes viewFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header & Navigation */
+        header {
+            background: rgba(6, 6, 8, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .logo::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.25rem 0;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-main);
+        }
+
+        .nav-links a.active {
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        .cart-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted) !important;
+            transition: color 0.3s ease;
+        }
+
+        .cart-icon:hover {
+            color: var(--text-main) !important;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -10px;
+            right: -14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: #060608;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1300px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            min-height: calc(100vh - 280px);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 2.5rem;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           2. COMPONENT STYLING (Hero Carousel, Cards, Grids)
+           ========================================================================== */
+        /* Hero Carousel Slider */
+        .hero-slider {
+            position: relative;
+            height: 450px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 4rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            padding: 0 5rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(6, 6, 8, 0.9) 0%, rgba(6, 6, 8, 0.5) 50%, transparent 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 600px;
+            z-index: 10;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-color);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            color: #fff;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .hero-desc {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Search & Filter Header Suite */
+        .storefront-header {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 3rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 3rem;
+            background: rgba(30, 30, 40, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .filter-categories {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: rgba(30, 30, 40, 0.4);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.6rem 1.25rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+        }
+
+        .category-btn.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .sort-box select {
+            background: rgba(30, 30, 40, 0.4);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 2rem 0.75rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+        }
+
+        .sort-box select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .product-image-container {
+            width: 100%;
+            height: 260px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #12121a;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.04);
+        }
+
+        .product-info {
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-category {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .product-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #fff;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-title:hover {
+            color: var(--accent-color);
+        }
+
+        .product-desc {
+            color: var(--text-muted);
+            font-size: 0.925rem;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+            line-height: 1.6;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .product-price {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-muted);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: #060608;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-accent:hover {
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* ==========================================================================
+           3. DYNAMIC DETAILS PAGE COMPONENT STYLING
+           ========================================================================== */
+        .details-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-detail-container {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 4rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 4rem;
+        }
+
+        .image-gallery-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-detail-image {
+            width: 100%;
+            height: 520px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .product-detail-image:hover {
+            transform: scale(1.02);
+        }
+
+        .product-detail-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .product-detail-category {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .product-detail-title {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .rating-stars {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--gold-color);
+            font-size: 0.95rem;
+        }
+
+        .rating-count {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .price-badge-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        .product-detail-price {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+            margin-bottom: 0;
+        }
+
+        .stock-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .product-detail-desc {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .purchase-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+        }
+
+        .qty-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            background: rgba(30, 30, 40, 0.4);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 50px;
+        }
+
+        .qty-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            width: 45px;
+            height: 100%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+
+        .qty-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .qty-val {
+            width: 50px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .trust-badges {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .badge-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge-card i {
+            color: var(--accent-color);
+            font-size: 1.35rem;
+        }
+
+        .badge-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .badge-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Spec tabs panel styles */
+        .tabs-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 3rem;
+            margin-bottom: 5rem;
+        }
+
+        .tab-headers {
+            display: flex;
+            gap: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .tab-header-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding-bottom: 1rem;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-header-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .tab-header-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-header-btn.active {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .tab-header-btn.active::after {
+            width: 100%;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .specs-table tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .specs-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .specs-table td {
+            padding: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .specs-label {
+            font-weight: 600;
+            color: var(--text-main);
+            width: 30%;
+        }
+
+        .related-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #fff;
+            position: relative;
+        }
+
+        /* ==========================================================================
+           4. SHOPPING CART drawer & success panel
+           ========================================================================== */
+        .cart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 3rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-right: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .cart-item-details {
+            flex-grow: 1;
+        }
+
+        .cart-item-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .cart-item-price {
+            color: var(--accent-color);
+            font-weight: 500;
+            font-size: 1.05rem;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .cart-item-actions span {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .cart-summary {
+            margin-top: 3rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1.5rem;
+        }
+
+        .cart-total {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .cart-total span {
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+        }
+
+        /* Success Checkout Card */
+        .success-card {
+            text-align: center;
+            max-width: 600px;
+            margin: 5rem auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 4rem 3rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .success-icon-wrap {
+            width: 100px;
+            height: 100px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2.5rem auto;
+            color: #10b981;
+            font-size: 3rem;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+            animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .success-card h1 {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .success-card p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 3rem;
+            line-height: 1.7;
+        }
+
+        /* Message Banners */
+        .error-message, .success-message {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            display: none;
+            font-weight: 500;
+            border: 1px solid;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .error-message {
+            color: #f87171;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .success-message {
+            color: #34d399;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Authentication Forms Styles */
+        .auth-container {
+            max-width: 440px;
+            margin: 4rem auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 3rem 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(16px);
+        }
+
+        .auth-title {
+            font-family: var(--font-display);
+            text-align: center;
+            margin-bottom: 2.5rem;
+            font-size: 2rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.85rem 1.25rem;
+            background: rgba(30, 30, 40, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .auth-links {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .auth-links a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* User Dashboard / Order History Cards */
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .order-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .order-meta {
+            display: flex;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .meta-val {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .order-products {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .order-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-prod-details {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .order-prod-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .order-prod-qty {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .order-prod-price {
+            font-family: var(--font-display);
+            font-weight: 500;
+        }
+
+        /* Custom Animated Toast Popups */
+        .toast-container {
+            position: fixed;
+            bottom: 2.5rem;
+            right: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            z-index: 99999;
+        }
+
+        .toast {
+            background: rgba(18, 18, 24, 0.95);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(16px);
+            padding: 1rem 1.75rem;
+            border-radius: 12px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            transform: translateY(30px);
+            opacity: 0;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            min-width: 320px;
+            max-width: 450px;
+            font-weight: 500;
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-success .toast-icon { color: #10b981; }
+        .toast-error .toast-icon { color: #ef4444; }
+        .toast-info .toast-icon { color: #3b82f6; }
+
+        @keyframes toastIn {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast.fade-out {
+            animation: toastOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toastOut {
+            to { transform: translateY(30px); opacity: 0; }
+        }
+
+        /* Footer */
+        footer {
+            background-color: #060608;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 6rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        /* ==========================================================================
+           5. RESPONSIVE DESIGN (Laptops & Smartphones Viewports)
+           ========================================================================== */
+        /* Tablet viewports */
+        @media (max-width: 1024px) {
+            main {
+                padding: 0 1.5rem;
+                margin: 2.5rem auto;
+            }
+
+            .hero-slider {
+                height: 380px;
+            }
+
+            .hero-slide {
+                padding: 0 3.5rem;
+            }
+
+            .hero-title {
+                font-size: 2.75rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+
+            .product-detail-container {
+                gap: 3rem;
+                padding: 3rem;
+            }
+        }
+
+        /* Mobile Viewports (Smartphones max 768px) */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1.25rem 1.5rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            .nav-links {
+                gap: 1.25rem;
+            }
+
+            .nav-links a {
+                font-size: 0.9rem;
+            }
+
+            main {
+                padding: 0 1rem;
+                margin: 2rem auto;
+            }
+
+            .section-title {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .hero-slider {
+                height: 320px;
+                margin-bottom: 3rem;
+            }
+
+            .hero-slide {
+                padding: 0 2rem;
+            }
+
+            .hero-title {
+                font-size: 2.25rem;
+            }
+
+            .hero-desc {
+                font-size: 0.95rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .storefront-header {
+                padding: 1.5rem;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.25rem;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .sort-box select {
+                width: 100%;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+            }
+
+            .product-image-container {
+                height: 240px;
+            }
+
+            .product-detail-container {
+                grid-template-columns: 1fr;
+                padding: 2rem 1.5rem;
+                gap: 2rem;
+            }
+
+            .product-detail-title {
+                font-size: 2.25rem;
+            }
+
+            .trust-badges {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .tabs-container {
+                padding: 1.5rem;
+            }
+
+            .tab-headers {
+                gap: 1.5rem;
+            }
+
+            .tab-header-btn {
+                font-size: 0.95rem;
+            }
+
+            .cart-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.25rem;
+                padding: 1.5rem 0;
+            }
+
+            .cart-item-img {
+                width: 100%;
+                height: 200px;
+                margin-right: 0;
+            }
+
+            .cart-item-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .cart-summary {
+                align-items: stretch;
+            }
+        }
+
+        /* Smaller smartphone viewport (max 480px) */
+        @media (max-width: 480px) {
+            nav {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-slider {
+                height: 280px;
+            }
+
+            .hero-title {
+                font-size: 1.75rem;
+            }
+
+            .hero-slide {
+                padding: 0 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header>
+        <nav>
+            <div class="logo" onclick="switchView('shop')">LuxeStore</div>
+            <div class="nav-links">
+                <a onclick="switchView('shop')" id="nav-shop" class="active">Shop</a>
+                
+                <!-- Authentication links (Logged out state) -->
+                <span id="auth-links" style="display: flex; gap: 1.5rem;">
+                    <a onclick="switchView('login')" id="nav-login">Login</a>
+                    <a onclick="switchView('register')" id="nav-register">Register</a>
+                </span>
+                
+                <!-- User Account Info (Logged in state) -->
+                <span id="user-info" style="display: none; align-items: center; gap: 1.5rem;">
+                    <span id="welcome-text" style="font-weight: 500; font-size: 0.9rem;"></span>
+                    <a onclick="switchView('orders')" id="nav-orders">My Orders</a>
+                    <a onclick="logoutUser()" id="logout-btn" style="color: var(--text-muted); cursor: pointer;">Logout</a>
+                </span>
+
+                <a href="/cart.html" onclick="event.preventDefault(); switchView('cart');" id="nav-cart" class="cart-icon">
+                    <i class="fas fa-shopping-cart" style="font-size: 1.2rem;"></i>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <main>
+        <!-- ==========================================================================
+           1. SHOP / STOREFRONT VIEW
+           ========================================================================== -->
+        <div id="view-shop" class="spa-view active-view">
+            <!-- Hero Carousel -->
+            <section class="hero-slider">
+                <div class="hero-slide active" style="background-image: url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop');">
+                    <div class="hero-content">
+                        <span class="hero-tag">Exclusive Collection</span>
+                        <h2 class="hero-title">Timeless <br>Craftsmanship</h2>
+                        <p class="hero-desc">Experience the sophistication of our Premium Watch lineup. Designed for professionals.</p>
+                        <button onclick="openProductDetail(1)" class="btn btn-accent">Discover More</button>
+                    </div>
+                </div>
+                <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop');">
+                    <div class="hero-content">
+                        <span class="hero-tag">Acoustic Mastery</span>
+                        <h2 class="hero-title">Pristine Sound <br>Isolating Design</h2>
+                        <p class="hero-desc">Immerse yourself in flawless audio quality with our signature Wireless Headphones.</p>
+                        <button onclick="openProductDetail(2)" class="btn btn-accent">Shop Audio</button>
+                    </div>
+                </div>
+                <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1595225476474-87563907a212?q=80&w=1200&auto=format&fit=crop');">
+                    <div class="hero-content">
+                        <span class="hero-tag">Desk Setup Essentials</span>
+                        <h2 class="hero-title">Precision Typing <br>Tactile Feedback</h2>
+                        <p class="hero-desc">Elevate your workspace with high-end, glowing Mechanical Keyboards.</p>
+                        <button onclick="openProductDetail(4)" class="btn btn-accent">Explore Tech</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filters Bar -->
+            <section class="storefront-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search premium goods..." oninput="filterAndRenderProducts()">
+                </div>
+                
+                <div class="filter-categories" id="categories-filter">
+                    <button class="category-btn active" data-category="all" onclick="changeCategory(event, 'all')">All Items</button>
+                    <button class="category-btn" data-category="electronics" onclick="changeCategory(event, 'electronics')">Electronics</button>
+                    <button class="category-btn" data-category="accessories" onclick="changeCategory(event, 'accessories')">Accessories</button>
+                    <button class="category-btn" data-category="sports" onclick="changeCategory(event, 'sports')">Sports</button>
+                </div>
+                
+                <div class="sort-box">
+                    <select id="sort-select" onchange="filterAndRenderProducts()">
+                        <option value="default">Sort by: Relevance</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="name-asc">Name: A to Z</option>
+                    </select>
+                </div>
+            </section>
+
+            <h1 class="section-title">Featured Collections</h1>
+            <div class="products-grid" id="products-grid">
+                <!-- Products dynamically rendered by script -->
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           2. PRODUCT DETAIL VIEW (SPA Dynamic Sub-page)
+           ========================================================================== -->
+        <div id="view-product-detail" class="spa-view">
+            <div class="details-wrapper">
+                <button onclick="switchView('shop')" class="btn btn-secondary" style="margin-bottom: 2rem;">
+                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Shop
+                </button>
+
+                <!-- Product Detail Section -->
+                <div id="product-detail-wrapper" class="product-detail-container">
+                    <!-- Loaded Dynamically -->
+                </div>
+
+                <!-- Spec Tabs & Support Features -->
+                <section class="tabs-container">
+                    <div class="tab-headers">
+                        <button class="tab-header-btn active" onclick="switchDetailTab(event, 'description-tab')">Description</button>
+                        <button class="tab-header-btn" onclick="switchDetailTab(event, 'specs-tab')">Specifications</button>
+                        <button class="tab-header-btn" onclick="switchDetailTab(event, 'reviews-tab')">Reviews</button>
+                    </div>
+                    
+                    <div id="description-tab" class="tab-pane active">
+                        <p>This premium collection piece exemplifies LuxeStore's dedication to quality, functional longevity, and modern aesthetics. Handcrafted under rigorous standards, it implements robust material compositions suited for daily professionals looking to elevate their lifestyle environments.</p>
+                        <br>
+                        <p>Each unit goes through multi-stage quality assurance testing ensuring accurate calibrated operations and durability. Packed in premium sustainable packaging suited for gifting.</p>
+                    </div>
+
+                    <div id="specs-tab" class="tab-pane">
+                        <table class="specs-table">
+                            <tr>
+                                <td class="specs-label">Material</td>
+                                <td>Aluminium-Magnesium alloy, sustainable leather, high-tensile composite filaments.</td>
+                            </tr>
+                            <tr>
+                                <td class="specs-label">Origin</td>
+                                <td>Precision crafted, imported components.</td>
+                            </tr>
+                            <tr>
+                                <td class="specs-label">Warranty</td>
+                                <td>2 Year Premium Luxe Warranty coverage on manufacturing defects.</td>
+                            </tr>
+                            <tr>
+                                <td class="specs-label">Shipping</td>
+                                <td>Consolidated express shipping. Ships in 24-48 Hours.</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div id="reviews-tab" class="tab-pane">
+                        <div style="display: flex; flex-direction: column; gap: 2rem;">
+                            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                                    <strong style="color:#fff;">Rohan Sharma</strong>
+                                    <span style="color:var(--gold-color);">★★★★★</span>
+                                </div>
+                                <p style="font-size:0.95rem;">Exceeded my expectations. The quality of build and pristine materials used make it worth every rupee. Super fast shipping too!</p>
+                            </div>
+                            <div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                                    <strong style="color:#fff;">Anjali Mehta</strong>
+                                    <span style="color:var(--gold-color);">★★★★☆</span>
+                                </div>
+                                <p style="font-size:0.95rem;">Minimalist, gorgeous packaging. Looks extremely premium on my work desk. Will definitely purchase again from LuxeStore.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Related Products Section Grid layout -->
+                <section style="margin-bottom: 4rem;">
+                    <h2 class="related-title">You May Also Like</h2>
+                    <div class="products-grid" id="related-products-grid">
+                        <!-- Loaded Dynamically based on Category -->
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           3. SHOPPING CART VIEW
+           ========================================================================== -->
+        <div id="view-cart" class="spa-view">
+            <h1 class="section-title">Your Shopping Cart</h1>
+            <div class="cart-container">
+                <div id="cart-items">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <div class="cart-summary" id="cart-summary" style="display: none;">
+                    <div class="cart-total">Total: <span id="cart-total-price">₹0</span></div>
+                    <button onclick="checkoutCart()" class="btn btn-accent" style="width: 250px;">Proceed to Checkout</button>
+                </div>
+                
+                <div id="empty-cart-message" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    Your cart is currently empty. <br><br>
+                    <button onclick="switchView('shop')" class="btn btn-secondary">Continue Shopping</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           4. CHECKOUT SUCCESS VIEW
+           ========================================================================== -->
+        <div id="view-success" class="spa-view">
+            <div class="success-card">
+                <div class="success-icon-wrap">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h1>Order Placed!</h1>
+                <p>Thank you for shopping with LuxeStore. Your order has been placed successfully and consolidated in our premium dispatch queue.</p>
+                
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 3rem; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Order Number</span>
+                        <strong style="color: var(--accent-color); font-size: 1rem;" id="success-order-id">#LX-0000</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Estimated Dispatch</span>
+                        <strong style="color: #fff; font-size: 0.9rem;">Within 24 Hours</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Shipping Method</span>
+                        <strong style="color: var(--accent-color); font-size: 0.9rem;">Express Priority Shipping</strong>
+                    </div>
+                </div>
+
+                <button onclick="switchView('shop')" class="btn btn-primary">Return to Shop</button>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           5. LOGIN VIEW (SPA Dynamic Authentication Component)
+           ========================================================================== -->
+        <div id="view-login" class="spa-view">
+            <div class="auth-container">
+                <h2 class="auth-title">Welcome Back</h2>
+                <div id="login-error" class="error-message" style="margin-bottom: 1.5rem;"></div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" required placeholder="name@domain.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 1rem; height: 50px; font-size: 1rem;">Login</button>
+                </form>
+                <div class="auth-links">
+                    Don't have a luxury account? <a onclick="switchView('register')" style="cursor: pointer;">Register here</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           6. REGISTER VIEW (SPA Dynamic Authentication Component)
+           ========================================================================== -->
+        <div id="view-register" class="spa-view">
+            <div class="auth-container">
+                <h2 class="auth-title">Create Account</h2>
+                <div id="register-error" class="error-message" style="margin-bottom: 1.5rem;"></div>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="register-name">Full Name</label>
+                        <input type="text" id="register-name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" required placeholder="name@domain.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required placeholder="Min 6 characters">
+                    </div>
+                    <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 1rem; height: 50px; font-size: 1rem;">Create Account</button>
+                </form>
+                <div class="auth-links">
+                    Already have an account? <a onclick="switchView('login')" style="cursor: pointer;">Login here</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+           7. ORDERS VIEW (Order History Dashboard Panel)
+           ========================================================================== -->
+        <div id="view-orders" class="spa-view">
+            <h1 class="section-title">Your Order History</h1>
+            <div class="cart-container" style="max-width: 1000px;">
+                <div id="orders-history-list" class="dashboard-grid">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 LuxeStore. All rights reserved. Premium E-Commerce Solutions.</p>
+    </footer>
+
+    <!-- ==========================================================================
+       8. CORE SCRIPTS (Mock DB, Auth Pipeline, and View State Controls)
+       ========================================================================== -->
+    <script>
+        // --- 1. MOCK DATABASE (Sync with SQLite seed data) ---
+        const products = [
+            { id: 1, name: "Premium Watch", description: "Elegant timepiece with leather strap and sapphire crystal glass.", price: 16999, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop", category: "Accessories" },
+            { id: 2, name: "Wireless Headphones", description: "Industry-leading noise-cancelling over-ear headphones.", price: 12499, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop", category: "Electronics" },
+            { id: 3, name: "Minimalist Backpack", description: "Durable, water-resistant daily commuter backpack.", price: 7499, image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop", category: "Bags" },
+            { id: 4, name: "Mechanical Keyboard", description: "RGB backlit tenkeyless keyboard for professionals.", price: 10999, image: "https://images.unsplash.com/photo-1595225476474-87563907a212?q=80&w=600&auto=format&fit=crop", category: "Electronics" },
+            { id: 5, name: "Running Shoes", description: "Lightweight breathable mesh running shoes with cushioned sole.", price: 5999, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop", category: "Footwear" },
+            { id: 6, name: "Sunglasses", description: "Polarized UV400 protection sunglasses with metal frame.", price: 3499, image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=600&auto=format&fit=crop", category: "Accessories" },
+            { id: 7, name: "Laptop Stand", description: "Adjustable aluminium laptop stand for ergonomic use.", price: 2999, image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?q=80&w=600&auto=format&fit=crop", category: "Electronics" },
+            { id: 8, name: "Leather Wallet", description: "Slim genuine leather RFID-blocking bifold wallet.", price: 1899, image: "https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=600&auto=format&fit=crop", category: "Accessories" },
+            { id: 9, name: "Yoga Mat", description: "Anti-slip premium 6mm thick yoga and exercise mat.", price: 1499, image: "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?q=80&w=600&auto=format&fit=crop", category: "Sports" },
+            { id: 10, name: "Stainless Steel Bottle", description: "Double-walled vacuum insulated water bottle 1L.", price: 1299, image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=600&auto=format&fit=crop", category: "Sports" },
+            { id: 11, name: "Desk Lamp", description: "Touch-dimmable LED desk lamp with USB charging port.", price: 2199, image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600&auto=format&fit=crop", category: "Home" },
+            { id: 12, name: "Wireless Charger", description: "Fast wireless charging pad compatible with all Qi devices.", price: 1799, image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?q=80&w=600&auto=format&fit=crop", category: "Electronics" }
+        ];
+
+        // --- 2. GLOBAL STATE ---
+        let cart = JSON.parse(localStorage.getItem('standalone_cart')) || [];
+        let activeCategory = 'all';
+        let selectedQuantity = 1;
+        
+        // Client-side authentication persistence
+        let users = JSON.parse(localStorage.getItem('standalone_users')) || [
+            { name: "Curated Guest", email: "user@luxestore.com", password: "password123" }
+        ];
+        let currentUser = JSON.parse(localStorage.getItem('standalone_current_user')) || null;
+        let orders = JSON.parse(localStorage.getItem('standalone_orders')) || [];
+
+        // --- 3. TOAST ENGINE ---
+        const showToast = (message, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            let icon = '✔';
+            if (type === 'error') icon = '✖';
+            if (type === 'info') icon = 'ℹ';
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        };
+
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+        };
+
+        // --- 4. VIEW MANAGER (SPA Reactive Router) ---
+        const switchView = (viewId) => {
+            document.querySelectorAll('.spa-view').forEach(view => {
+                view.classList.remove('active-view');
+            });
+            
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) target.classList.add('active-view');
+            
+            // Highlight header tabs & clear errors
+            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+            if (viewId === 'shop') document.getElementById('nav-shop').classList.add('active');
+            if (viewId === 'cart') document.getElementById('nav-cart').classList.add('active');
+            if (viewId === 'login') document.getElementById('nav-login')?.classList.add('active');
+            if (viewId === 'register') document.getElementById('nav-register')?.classList.add('active');
+            if (viewId === 'orders') document.getElementById('nav-orders')?.classList.add('active');
+            
+            // Clear message boxes
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('register-error').style.display = 'none';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Refresh specific panels
+            if (viewId === 'cart') renderCart();
+            if (viewId === 'orders') renderOrders();
+        };
+
+        // --- 5. AUTHENTICATION CONTROLLER (Register / Login / Logout) ---
+        const updateAuthUI = () => {
+            const authLinks = document.getElementById('auth-links');
+            const userInfo = document.getElementById('user-info');
+            const welcomeText = document.getElementById('welcome-text');
+
+            if (currentUser) {
+                if (authLinks) authLinks.style.display = 'none';
+                if (userInfo) {
+                    userInfo.style.display = 'flex';
+                    welcomeText.textContent = `Hi, ${currentUser.name}`;
+                }
+            } else {
+                if (authLinks) authLinks.style.display = 'flex';
+                if (userInfo) userInfo.style.display = 'none';
+            }
+        };
+
+        const handleRegister = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim().toLowerCase();
+            const password = document.getElementById('register-password').value;
+            const errBox = document.getElementById('register-error');
+
+            errBox.style.display = 'none';
+
+            if (password.length < 6) {
+                errBox.textContent = "Password must be at least 6 characters.";
+                errBox.style.display = 'block';
+                showToast("Password too short.", "error");
+                return;
+            }
+
+            const existingUser = users.find(u => u.email === email);
+            if (existingUser) {
+                errBox.textContent = "Email address already registered.";
+                errBox.style.display = 'block';
+                showToast("Email already exists.", "error");
+                return;
+            }
+
+            const newUser = { name, email, password };
+            users.push(newUser);
+            localStorage.setItem('standalone_users', JSON.stringify(users));
+
+            currentUser = newUser;
+            localStorage.setItem('standalone_current_user', JSON.stringify(currentUser));
+            
+            showToast(`Welcome to LuxeStore, ${name}!`, "success");
+            updateAuthUI();
+            
+            // Clear inputs
+            document.getElementById('register-name').value = '';
+            document.getElementById('register-email').value = '';
+            document.getElementById('register-password').value = '';
+            
+            switchView('shop');
+        };
+
+        const handleLogin = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+            const errBox = document.getElementById('login-error');
+
+            errBox.style.display = 'none';
+
+            const user = users.find(u => u.email === email && u.password === password);
+            if (!user) {
+                errBox.textContent = "Invalid email or password credentials.";
+                errBox.style.display = 'block';
+                showToast("Invalid Credentials.", "error");
+                return;
+            }
+
+            currentUser = user;
+            localStorage.setItem('standalone_current_user', JSON.stringify(currentUser));
+            
+            showToast(`Welcome back, ${user.name}!`, "success");
+            updateAuthUI();
+
+            // Clear inputs
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+
+            switchView('shop');
+        };
+
+        const logoutUser = () => {
+            currentUser = null;
+            localStorage.removeItem('standalone_current_user');
+            showToast("Logged out successfully.", "info");
+            updateAuthUI();
+            switchView('shop');
+        };
+
+        // --- 6. STOREFRONT RENDERING (Filters & Sorting) ---
+        const changeCategory = (e, catName) => {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            activeCategory = catName;
+            filterAndRenderProducts();
+        };
+
+        const filterAndRenderProducts = () => {
+            const grid = document.getElementById('products-grid');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const sortVal = document.getElementById('sort-select').value;
+
+            let filtered = [...products];
+
+            if (searchVal) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchVal) || 
+                    p.description.toLowerCase().includes(searchVal) ||
+                    p.category.toLowerCase().includes(searchVal)
+                );
+            }
+
+            if (activeCategory !== 'all') {
+                filtered = filtered.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+            }
+
+            if (sortVal === 'price-low') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortVal === 'price-high') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (sortVal === 'name-asc') {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem; font-size: 1.1rem;">No premium goods match your search.</p>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card">
+                    <div class="product-image-container" onclick="openProductDetail(${p.id})">
+                        <img src="${p.image}" alt="${p.name}" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${p.category}</div>
+                        <h3 class="product-title" onclick="openProductDetail(${p.id})">${p.name}</h3>
+                        <p class="product-desc">${p.description}</p>
+                        <div class="product-footer">
+                            <span class="product-price">${formatCurrency(p.price)}</span>
+                            <button class="btn btn-accent" onclick='addToCart(${p.id})'>Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // --- 7. DYNAMIC DETAILS PANEL GENERATOR ---
+        const openProductDetail = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            selectedQuantity = 1;
+            switchView('product-detail');
+
+            const container = document.getElementById('product-detail-wrapper');
+            container.innerHTML = `
+                <div class="image-gallery-pane">
+                    <img src="${product.image}" alt="${product.name}" class="product-detail-image">
+                </div>
+                
+                <div class="product-detail-info">
+                    <div class="product-detail-category">${product.category}</div>
+                    <h1 class="product-detail-title">${product.name}</h1>
+                    
+                    <div class="rating-stars">
+                        <span>★★★★★</span>
+                        <span class="rating-count">4.9 / 5.0 (82 Curated Reviews)</span>
+                    </div>
+                    
+                    <div class="price-badge-row">
+                        <div class="product-detail-price">${formatCurrency(product.price)}</div>
+                        <span class="stock-badge">In Stock</span>
+                    </div>
+                    
+                    <p class="product-detail-desc">${product.description}</p>
+                    
+                    <div class="purchase-controls">
+                        <div class="qty-selector">
+                            <button class="qty-btn" onclick="updateQuantity(-1)">-</button>
+                            <span class="qty-val" id="qty-val">1</span>
+                            <button class="qty-btn" onclick="updateQuantity(1)">+</button>
+                        </div>
+                        <button class="btn btn-accent" style="flex-grow: 1; height: 50px; font-size: 1.1rem; padding: 0;" onclick='addCustomToCart(${product.id})'>Add to Cart</button>
+                    </div>
+                    
+                    <div class="trust-badges">
+                        <div class="badge-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="badge-title">Secured Checkout</span>
+                            <span class="badge-desc">RFID encrypted</span>
+                        </div>
+                        <div class="badge-card">
+                            <i class="fas fa-shipping-fast"></i>
+                            <span class="badge-title">Express Delivery</span>
+                            <span class="badge-desc">Curated dispatch</span>
+                        </div>
+                        <div class="badge-card">
+                            <i class="fas fa-undo"></i>
+                            <span class="badge-title">Easy Returns</span>
+                            <span class="badge-desc">30-day coverage</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            renderRelatedProducts(product);
+        };
+
+        const updateQuantity = (dir) => {
+            const qtyVal = document.getElementById('qty-val');
+            selectedQuantity += dir;
+            if (selectedQuantity < 1) selectedQuantity = 1;
+            if (qtyVal) qtyVal.textContent = selectedQuantity;
+        };
+
+        const switchDetailTab = (e, tabId) => {
+            document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-header-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            e.currentTarget.classList.add('active');
+        };
+
+        const renderRelatedProducts = (currentProduct) => {
+            const grid = document.getElementById('related-products-grid');
+            const related = products
+                .filter(p => p.category.toLowerCase() === currentProduct.category.toLowerCase() && p.id !== currentProduct.id)
+                .slice(0, 3);
+
+            if (related.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">Explore other categories for premium designs.</p>';
+                return;
+            }
+
+            grid.innerHTML = related.map(r => `
+                <div class="product-card">
+                    <div class="product-image-container" onclick="openProductDetail(${r.id})">
+                        <img src="${r.image}" alt="${r.name}" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${r.category}</div>
+                        <h3 class="product-title" onclick="openProductDetail(${r.id})">${r.name}</h3>
+                        <p class="product-desc">${r.description}</p>
+                        <div class="product-footer">
+                            <span class="product-price">${formatCurrency(r.price)}</span>
+                            <button class="btn btn-accent" onclick='addToCart(${r.id})'>Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // --- 8. CART & CHECKOUT ENGINE ---
+        const addToCart = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = cart.find(item => item.product_id === productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({
+                    product_id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+
+            saveCart();
+            showToast(`${product.name} added to cart!`, 'success');
+        };
+
+        const addCustomToCart = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = cart.find(item => item.product_id === productId);
+            if (existing) {
+                existing.quantity += selectedQuantity;
+            } else {
+                cart.push({
+                    product_id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    quantity: selectedQuantity
+                });
+            }
+
+            saveCart();
+            showToast(`${selectedQuantity}x ${product.name} added to cart!`, 'success');
+            
+            // Reset state
+            selectedQuantity = 1;
+            const qtyVal = document.getElementById('qty-val');
+            if (qtyVal) qtyVal.textContent = '1';
+        };
+
+        const removeFromCart = (index) => {
+            const item = cart[index];
+            cart.splice(index, 1);
+            saveCart();
+            renderCart();
+            showToast(`${item.name} removed from cart.`, 'info');
+        };
+
+        const saveCart = () => {
+            localStorage.setItem('standalone_cart', JSON.stringify(cart));
+            updateCartCount();
+        };
+
+        const updateCartCount = () => {
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = total;
+        };
+
+        const renderCart = () => {
+            const itemsContainer = document.getElementById('cart-items');
+            const summary = document.getElementById('cart-summary');
+            const emptyMsg = document.getElementById('empty-cart-message');
+            const totalPriceEl = document.getElementById('cart-total-price');
+
+            if (cart.length === 0) {
+                itemsContainer.style.display = 'none';
+                summary.style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            emptyMsg.style.display = 'none';
+            summary.style.display = 'flex';
+            itemsContainer.style.display = 'block';
+
+            let total = 0;
+            itemsContainer.innerHTML = cart.map((item, index) => {
+                total += item.price * item.quantity;
+                return `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.name}</div>
+                            <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <span>Qty: ${item.quantity}</span>
+                            <button class="btn btn-secondary" onclick="removeFromCart(${index})" style="padding: 0.5rem 1rem;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalPriceEl.textContent = formatCurrency(total);
+        };
+
+        const checkoutCart = () => {
+            if (!currentUser) {
+                showToast("Please log in or register to complete checkout.", "error");
+                switchView('login');
+                return;
+            }
+
+            let total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const orderId = Math.floor(1000 + Math.random() * 9000);
+
+            // Record transaction consolidated order details
+            const newOrder = {
+                id: orderId,
+                email: currentUser.email,
+                total: total,
+                date: new Date().toLocaleDateString('en-IN', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                }),
+                items: [...cart],
+                status: 'Delivered'
+            };
+
+            orders.unshift(newOrder);
+            localStorage.setItem('standalone_orders', JSON.stringify(orders));
+
+            // Reset cart
+            cart = [];
+            saveCart();
+            
+            // Set dynamic order ID on success screen
+            document.getElementById('success-order-id').textContent = `#LX-${orderId}`;
+            
+            switchView('success');
+            showToast('Order consolidated successfully!', 'success');
+        };
+
+        // --- 9. ORDER HISTORY DASHBOARD ---
+        const renderOrders = () => {
+            const container = document.getElementById('orders-history-list');
+            if (!container) return;
+
+            if (!currentUser) {
+                container.innerHTML = '<p style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Please log in or register to view your order history.</p>';
+                return;
+            }
+
+            const userOrders = orders.filter(o => o.email === currentUser.email);
+            if (userOrders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2.5rem; color: var(--text-muted);">You have not placed any standalone orders yet.</p>';
+                return;
+            }
+
+            container.innerHTML = userOrders.map(order => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-meta">
+                            <div class="meta-group">
+                                <span class="meta-label">Order Placed</span>
+                                <span class="meta-val">${order.date}</span>
+                            </div>
+                            <div class="meta-group">
+                                <span class="meta-label">Total</span>
+                                <span class="meta-val">${formatCurrency(order.total)}</span>
+                            </div>
+                            <div class="meta-group">
+                                <span class="meta-label">Order ID</span>
+                                <span class="meta-val">#LX-${order.id}</span>
+                            </div>
+                        </div>
+                        <span class="order-status">Consolidated</span>
+                    </div>
+                    <div class="order-products">
+                        ${order.items.map(item => `
+                            <div class="order-product-item">
+                                <div class="order-prod-details">
+                                    <span class="order-prod-name">${item.name}</span>
+                                    <span class="order-prod-qty">Qty: ${item.quantity}</span>
+                                </div>
+                                <span class="order-prod-price">${formatCurrency(item.price * item.quantity)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // --- 10. INITIALIZATION & CAROUSEL ENGINE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            updateCartCount();
+            filterAndRenderProducts();
+
+            // Hero Slider auto sliding
+            const slides = document.querySelectorAll('.hero-slide');
+            let currentSlide = 0;
+
+            const nextSlide = () => {
+                if (document.getElementById('view-shop').classList.contains('active-view')) {
+                    slides[currentSlide].classList.remove('active');
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    slides[currentSlide].classList.add('active');
+                }
+            };
+
+            setInterval(nextSlide, 5000);
+        });
+    </script>
+</body>
+</html>
